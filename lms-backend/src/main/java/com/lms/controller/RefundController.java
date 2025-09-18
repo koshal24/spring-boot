@@ -15,22 +15,27 @@ public class RefundController {
     private RefundService refundService;
 
     @GetMapping
-    public List<Refund> getAllRefunds() {
-        return refundService.getAllRefunds();
+    public org.springframework.http.ResponseEntity<List<Refund>> getAllRefunds() {
+        List<Refund> refunds = refundService.getAllRefunds();
+        return org.springframework.http.ResponseEntity.ok(refunds);
     }
 
     @GetMapping("/{id}")
-    public Optional<Refund> getRefundById(@PathVariable String id) {
-        return refundService.getRefundById(id);
+    public org.springframework.http.ResponseEntity<Refund> getRefundById(@PathVariable String id) {
+        Optional<Refund> refund = refundService.getRefundById(id);
+        return refund.map(org.springframework.http.ResponseEntity::ok)
+                .orElseGet(() -> org.springframework.http.ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Refund createRefund(@RequestBody Refund refund) {
-        return refundService.saveRefund(refund);
+    public org.springframework.http.ResponseEntity<Refund> createRefund(@RequestBody Refund refund) {
+        Refund saved = refundService.saveRefund(refund);
+        return org.springframework.http.ResponseEntity.ok(saved);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteRefund(@PathVariable String id) {
+    public org.springframework.http.ResponseEntity<Void> deleteRefund(@PathVariable String id) {
         refundService.deleteRefund(id);
+        return org.springframework.http.ResponseEntity.noContent().build();
     }
 }

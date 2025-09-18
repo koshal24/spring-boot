@@ -17,13 +17,13 @@ public class PaymentAnalyticsController {
     private PurchaseRepository purchaseRepository;
 
     @GetMapping
-    public Map<String, Object> getPaymentAnalytics() {
+    public org.springframework.http.ResponseEntity<Map<String, Object>> getPaymentAnalytics() {
         List<Purchase> purchases = purchaseRepository.findAll();
         double totalRevenue = purchases.stream().mapToDouble(Purchase::getAmount).sum();
         int totalPayments = purchases.size();
         Map<String, Object> analytics = new HashMap<>();
         analytics.put("totalRevenue", totalRevenue);
         analytics.put("totalPayments", totalPayments);
-        return analytics;
+        return org.springframework.http.ResponseEntity.ok(analytics);
     }
 }

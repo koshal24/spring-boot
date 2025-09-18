@@ -14,22 +14,25 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<User>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
-    public Optional<User> getUserById(@PathVariable String id) {
-        return userService.getUserById(id);
+    public ResponseEntity<User> getUserById(@PathVariable String id) {
+        Optional<User> user = userService.getUserById(id);
+        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.saveUser(user);
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User saved = userService.saveUser(user);
+        return ResponseEntity.status(201).body(saved);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable String id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }

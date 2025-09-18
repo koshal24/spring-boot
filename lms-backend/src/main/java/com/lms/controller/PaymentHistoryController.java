@@ -17,9 +17,10 @@ public class PaymentHistoryController {
     private PurchaseRepository purchaseRepository;
 
     @GetMapping("/{userId}")
-    public List<Purchase> getUserPaymentHistory(@PathVariable String userId) {
-        return purchaseRepository.findAll().stream()
+    public org.springframework.http.ResponseEntity<List<Purchase>> getUserPaymentHistory(@PathVariable String userId) {
+        List<Purchase> history = purchaseRepository.findAll().stream()
                 .filter(p -> userId.equals(p.getUserId()))
                 .collect(Collectors.toList());
+        return org.springframework.http.ResponseEntity.ok(history);
     }
 }

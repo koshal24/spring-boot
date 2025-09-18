@@ -14,22 +14,27 @@ public class PurchaseController {
     private PurchaseService purchaseService;
 
     @GetMapping
-    public List<Purchase> getAllPurchases() {
-        return purchaseService.getAllPurchases();
+    public org.springframework.http.ResponseEntity<List<Purchase>> getAllPurchases() {
+        List<Purchase> purchases = purchaseService.getAllPurchases();
+        return org.springframework.http.ResponseEntity.ok(purchases);
     }
 
     @GetMapping("/{id}")
-    public Optional<Purchase> getPurchaseById(@PathVariable String id) {
-        return purchaseService.getPurchaseById(id);
+    public org.springframework.http.ResponseEntity<Purchase> getPurchaseById(@PathVariable String id) {
+        Optional<Purchase> purchase = purchaseService.getPurchaseById(id);
+        return purchase.map(org.springframework.http.ResponseEntity::ok)
+                .orElseGet(() -> org.springframework.http.ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Purchase createPurchase(@RequestBody Purchase purchase) {
-        return purchaseService.savePurchase(purchase);
+    public org.springframework.http.ResponseEntity<Purchase> createPurchase(@RequestBody Purchase purchase) {
+        Purchase saved = purchaseService.savePurchase(purchase);
+        return org.springframework.http.ResponseEntity.ok(saved);
     }
 
     @DeleteMapping("/{id}")
-    public void deletePurchase(@PathVariable String id) {
+    public org.springframework.http.ResponseEntity<Void> deletePurchase(@PathVariable String id) {
         purchaseService.deletePurchase(id);
+        return org.springframework.http.ResponseEntity.noContent().build();
     }
 }

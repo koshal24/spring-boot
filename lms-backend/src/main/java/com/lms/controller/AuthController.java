@@ -29,7 +29,7 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String password = request.get("password");
         Map<String, Object> response = new HashMap<>();
@@ -39,22 +39,23 @@ public class AuthController {
             final String jwt = jwtUtil.generateToken(userDetails.getUsername());
             response.put("token", jwt);
             response.put("message", "Login successful");
+            return ResponseEntity.ok(response);
         } catch (AuthenticationException e) {
             response.put("error", "Invalid credentials");
+            return ResponseEntity.status(401).body(response);
         }
-        return response;
     }
 
     @PostMapping("/register")
-    public Map<String, Object> register(@RequestBody User user) {
+    public ResponseEntity<Map<String, Object>> register(@RequestBody User user) {
         Map<String, Object> response = new HashMap<>();
         if (userRepository.findAll().stream().anyMatch(u -> u.getEmail().equals(user.getEmail()))) {
             response.put("error", "Email already exists");
-            return response;
+            return ResponseEntity.status(409).body(response);
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         response.put("message", "Registration successful");
-        return response;
+        return ResponseEntity.status(201).body(response);
     }
 }

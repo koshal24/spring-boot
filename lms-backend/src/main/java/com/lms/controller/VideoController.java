@@ -1,33 +1,8 @@
-import com.lms.controller.CourseController;
-import org.springframework.beans.factory.annotation.Autowired;
-    @Autowired
-    private CourseController courseController;
-    @GetMapping("/stream/{courseId}/{userId}/{videoName}")
-    public ResponseEntity<Map<String, String>> streamVideo(@PathVariable String courseId, @PathVariable String userId, @PathVariable String videoName) {
-        Map<String, String> response = new HashMap<>();
-        Course course = courseController.courseService.getCourseById(courseId).orElse(null);
-        if (course == null) {
-            response.put("error", "Course not found.");
-            return ResponseEntity.status(404).body(response);
-        }
-        if (!course.isPaid() || course.getPrice() == 0) {
-            // Free course: allow access to anyone
-            String videoUrl = "https://your-azure-storage-url/" + videoName; // Replace with actual logic
-            response.put("videoUrl", videoUrl);
-            return ResponseEntity.ok(response);
-        }
-        boolean canAccess = courseController.canUserAccessCourse(courseId, userId);
-        if (!canAccess) {
-            response.put("error", "Access denied: Please purchase or subscribe to this course.");
-            return ResponseEntity.status(403).body(response);
-        }
-        String videoUrl = "https://your-azure-storage-url/" + videoName; // Replace with actual logic
-        response.put("videoUrl", videoUrl);
-        return ResponseEntity.ok(response);
-    }
-package com.lms.controller;
+ package com.lms.controller;
 
 import com.lms.service.AzureStorageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.lms.controller.CourseController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,5 +28,31 @@ public class VideoController {
             response.put("error", "Upload failed");
             return ResponseEntity.badRequest().body(response);
         }
+    }
+
+    @Autowired
+    private CourseController courseController;
+    @GetMapping("/stream/{courseId}/{userId}/{videoName}")
+    public ResponseEntity<Map<String, String>> streamVideo(@PathVariable String courseId, @PathVariable String userId, @PathVariable String videoName) {
+        Map<String, String> response = new HashMap<>();
+        Course course = courseController.courseService.getCourseById(courseId).orElse(null);
+        if (course == null) {
+            response.put("error", "Course not found.");
+            return ResponseEntity.status(404).body(response);
+        }
+        if (!course.isPaid() || course.getPrice() == 0) {
+            // Free course: allow access to anyone
+            String videoUrl = "https://your-azure-storage-url/" + videoName; // Replace with actual logic
+            response.put("videoUrl", videoUrl);
+            return ResponseEntity.ok(response);
+        }
+        boolean canAccess = courseController.canUserAccessCourse(courseId, userId);
+        if (!canAccess) {
+            response.put("error", "Access denied: Please purchase or subscribe to this course.");
+            return ResponseEntity.status(403).body(response);
+        }
+        String videoUrl = "https://your-azure-storage-url/" + videoName; // Replace with actual logic
+        response.put("videoUrl", videoUrl);
+        return ResponseEntity.ok(response);
     }
 }
