@@ -17,7 +17,7 @@ public class User {
     private String name;
     private String email;
     private String password;
-    private String role; // e.g., "USER", "ADMIN", "EDUCATOR"
+        private String role; // e.g., ADMIN, EDUCATOR, STUDENT
     private String bio; // Educator bio (optional)
     private List<String> uploadedCourses; // For educators: list of course IDs they uploaded
     private List<String> purchasedCourses;

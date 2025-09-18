@@ -1,0 +1,660 @@
+openapi: 3.0.0
+info:
+  title: LMS Spring Boot API
+  version: 1.0.0
+  description: Full-featured Learning Management System backend
+servers:
+  - url: /api
+paths:
+  /auth/login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+  /auth/register:
+    post:
+      summary: User registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Registration successful
+  /users/{id}:
+    get:
+      summary: Get user profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile
+    put:
+      summary: Update user profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+  /courses:
+    get:
+      summary: List all courses
+      responses:
+        '200':
+          description: List of courses
+    post:
+      summary: Create course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        '201':
+          description: Course created
+  /courses/{id}:
+    get:
+      summary: Get course details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course details
+    put:
+      summary: Update course
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        '200':
+          description: Course updated
+    delete:
+      summary: Delete course
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Course deleted
+  /course-progress/user/{userId}:
+    get:
+      summary: Get user course progress
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User progress
+  /course-progress:
+    post:
+      summary: Update course progress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseProgress'
+      responses:
+        '200':
+          description: Progress updated
+  /course-reviews/course/{courseId}:
+    get:
+      summary: Get reviews for a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of reviews
+  /course-reviews/user/{userId}:
+    get:
+      summary: Get reviews by user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of reviews
+  /course-reviews:
+    post:
+      summary: Submit review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseReview'
+      responses:
+        '201':
+          description: Review submitted
+  /course-reviews/{id}:
+    delete:
+      summary: Delete review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Review deleted
+  /quizzes/course/{courseId}:
+    get:
+      summary: Get quizzes for a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of quizzes
+  /quizzes:
+    post:
+      summary: Create quiz
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Quiz'
+      responses:
+        '201':
+          description: Quiz created
+  /quizzes/{id}:
+    put:
+      summary: Update quiz
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Quiz'
+      responses:
+        '200':
+          description: Quiz updated
+    delete:
+      summary: Delete quiz
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Quiz deleted
+  /quiz-attempts/quiz/{quizId}:
+    get:
+      summary: Get attempts for a quiz
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of attempts
+  /quiz-attempts/user/{userId}:
+    get:
+      summary: Get attempts by user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of attempts
+  /quiz-attempts:
+    post:
+      summary: Submit quiz attempt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizAttempt'
+      responses:
+        '201':
+          description: Attempt submitted
+  /certificates/user/{userId}:
+    get:
+      summary: Get user certificates
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of certificates
+  /certificates:
+    post:
+      summary: Issue certificate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Certificate'
+      responses:
+        '201':
+          description: Certificate issued
+  /certificates/{id}:
+    delete:
+      summary: Delete certificate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Certificate deleted
+  /notifications/user/{userId}:
+    get:
+      summary: Get user notifications
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of notifications
+  /notifications:
+    post:
+      summary: Create notification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      responses:
+        '201':
+          description: Notification created
+  /notifications/email:
+    post:
+      summary: Send email notification
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                toEmail:
+                  type: string
+                subject:
+                  type: string
+                body:
+                  type: string
+      responses:
+        '200':
+          description: Email sent
+  /forums/course/{courseId}:
+    get:
+      summary: Get forum posts for a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of forum posts
+  /forums:
+    post:
+      summary: Create forum post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForumPost'
+      responses:
+        '201':
+          description: Forum post created
+  /forums/{postId}/replies:
+    post:
+      summary: Add reply to forum post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reply'
+      responses:
+        '201':
+          description: Reply added
+  /forums/{postId}/replies/{replyId}:
+    delete:
+      summary: Delete reply from forum post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: replyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Reply deleted
+  /leaderboards/top-scores:
+    get:
+      summary: Get top quiz scores
+      responses:
+        '200':
+          description: Leaderboard
+  /badges:
+    get:
+      summary: List all badges
+      responses:
+        '200':
+          description: List of badges
+    post:
+      summary: Create badge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Badge'
+      responses:
+        '201':
+          description: Badge created
+  /badges/{id}:
+    delete:
+      summary: Delete badge
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Badge deleted
+  /analytics/dashboard:
+    get:
+      summary: Get dashboard analytics
+      responses:
+        '200':
+          description: Analytics data
+  /analytics/course-progress:
+    get:
+      summary: Get all course progress
+      responses:
+        '200':
+          description: List of course progress
+  /analytics/quiz-performance:
+    get:
+      summary: Get all quiz attempts
+      responses:
+        '200':
+          description: List of quiz attempts
+  /analytics/revenue:
+    get:
+      summary: Get total revenue
+      responses:
+        '200':
+          description: Revenue
+  /recommendations/user/{userId}:
+    get:
+      summary: Get recommended courses for user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of recommended courses
+components:
+  schemas:
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        educatorId:
+          type: string
+        price:
+          type: number
+    CourseProgress:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        courseId:
+          type: string
+        progress:
+          type: number
+    CourseReview:
+      type: object
+      properties:
+        id:
+          type: string
+        courseId:
+          type: string
+        userId:
+          type: string
+        rating:
+          type: integer
+        comment:
+          type: string
+        timestamp:
+          type: integer
+    Quiz:
+      type: object
+      properties:
+        id:
+          type: string
+        courseId:
+          type: string
+        title:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+        published:
+          type: boolean
+    Question:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correctOptionIndex:
+          type: integer
+    QuizAttempt:
+      type: object
+      properties:
+        id:
+          type: string
+        quizId:
+          type: string
+        userId:
+          type: string
+        selectedOptions:
+          type: array
+          items:
+            type: integer
+        score:
+          type: integer
+        timestamp:
+          type: integer
+    Certificate:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        courseId:
+          type: string
+        certificateUrl:
+          type: string
+        issuedAt:
+          type: integer
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        message:
+          type: string
+        type:
+          type: string
+        read:
+          type: boolean
+        timestamp:
+          type: integer
+    ForumPost:
+      type: object
+      properties:
+        id:
+          type: string
+        courseId:
+          type: string
+        userId:
+          type: string
+        content:
+          type: string
+        replies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reply'
+        timestamp:
+          type: integer
+    Reply:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        content:
+          type: string
+        timestamp:
+          type: integer
+    Badge:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        iconUrl:
+          type: string

@@ -1,0 +1,32 @@
+package com.lms.model;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.util.Date;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Document(collection = "forum_posts")
+public class ForumPost {
+    @Id
+    private String id;
+    private String courseId;
+    private String userId;
+    private String content;
+    private Date timestamp;
+    private List<Reply> replies;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Reply {
+        private String userId;
+        private String content;
+        private Date timestamp;
+    }
+}
