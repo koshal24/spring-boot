@@ -25,13 +25,23 @@ public class JwtUtil {
     private String SECRET_KEY;
 
     private Key getSigningKey() {
-        // Expecting a Base64 encoded secret in properties. Fall back to raw bytes if not base64.
+        // Try decoding as standard Base64, then URL-safe Base64, otherwise fall back to raw UTF-8 bytes.
+        if (SECRET_KEY == null || SECRET_KEY.isBlank()) {
+            throw new IllegalStateException("jwt.secret is not configured or empty");
+        }
         try {
             byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
             return Keys.hmacShaKeyFor(keyBytes);
-        } catch (IllegalArgumentException e) {
-            // Not base64 - use raw bytes
-            return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception ex1) {
+            try {
+                // Accept URL-safe Base64 (characters like '-' and '_')
+                byte[] keyBytes = Decoders.BASE64URL.decode(SECRET_KEY);
+                return Keys.hmacShaKeyFor(keyBytes);
+            } catch (Exception ex2) {
+                // Final fallback: use raw UTF-8 bytes of the secret string
+                byte[] keyBytes = SECRET_KEY.getBytes(StandardCharsets.UTF_8);
+                return Keys.hmacShaKeyFor(keyBytes);
+            }
         }
     }
 
