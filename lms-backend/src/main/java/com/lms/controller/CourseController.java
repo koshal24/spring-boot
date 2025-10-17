@@ -3,6 +3,7 @@ package com.lms.controller;
 import com.lms.model.Course;
 import com.lms.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +11,9 @@ import com.lms.model.Purchase;
 import com.lms.model.Subscription;
 import com.lms.service.PurchaseService;
 import com.lms.service.SubscriptionService;
-    
+
+import static java.util.stream.Collectors.toList;
+
 
 @RestController
 @RequestMapping("/api/courses")
@@ -39,16 +42,16 @@ public class CourseController {
     @GetMapping("/free")
     public ResponseEntity<List<Course>> getFreeCourses() {
         List<Course> freeCourses = courseService.getAllCourses().stream()
-            .filter(c -> !c.isPaid() || c.getPrice() == 0)
-            .toList();
+            .filter(c -> !c.isPaid() || c.getPrice() == 0).collect(toList());
+//            .collection(toList());
         return ResponseEntity.ok(freeCourses);
     }
 
     @GetMapping("/paid")
     public ResponseEntity<List<Course>> getPaidCourses() {
         List<Course> paidCourses = courseService.getAllCourses().stream()
-            .filter(c -> c.isPaid() && c.getPrice() > 0)
-            .toList();
+            .filter(c -> c.isPaid() && c.getPrice() > 0).collect(toList());
+//            .toList();
         return ResponseEntity.ok(paidCourses);
     }
 

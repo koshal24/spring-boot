@@ -3,9 +3,12 @@ package com.lms.controller;
 import com.lms.model.CourseProgress;
 import com.lms.service.CourseProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping("/api/course-progress")
@@ -62,7 +65,7 @@ public class CourseProgressController {
     public ResponseEntity<Double> getAverageCompletionRate(@PathVariable String courseId) {
         var progresses = courseProgressService.getAllCourseProgress().stream()
             .filter(cp -> courseId.equals(cp.getCourseId()) && cp.getTotalLessons() > 0)
-            .toList();
+            .collect(toList());
         double avg = progresses.isEmpty() ? 0.0 : progresses.stream()
             .mapToDouble(cp -> (cp.getCompletedLessons() * 100.0) / cp.getTotalLessons())
             .average().orElse(0.0);

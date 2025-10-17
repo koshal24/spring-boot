@@ -1,29 +1,92 @@
+// package com.lms.security;
+
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.context.annotation.Bean;
+// import org.springframework.context.annotation.Configuration;
+// import org.springframework.security.authentication.AuthenticationManager;
+// import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+// import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+// import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+// import org.springframework.security.config.http.SessionCreationPolicy;
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+// import org.springframework.security.crypto.password.PasswordEncoder;
+// import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+// import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+// import org.springframework.security.web.SecurityFilterChain;
+
+// @Configuration
+// @EnableWebSecurity
+// public class SecurityConfig {
+//     @Autowired
+//     private MyUserDetailsService myUserDetailsService;
+//     @Autowired
+//     private JwtRequestFilter jwtRequestFilter;
+
+//     @Autowired
+//     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+//         auth.userDetailsService(myUserDetailsService).passwordEncoder(passwordEncoder());
+//     }
+
+//     @Bean
+//     public PasswordEncoder passwordEncoder() {
+//         return new BCryptPasswordEncoder();
+//     }
+
+//     @Bean
+//     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+//         return authenticationConfiguration.getAuthenticationManager();
+//     }
+
+//     @Bean
+//     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//         http.csrf().disable()
+//             .authorizeHttpRequests(authorize -> authorize
+//                 .requestMatchers("/api/auth/**").permitAll()
+//                 .requestMatchers("/api/admin/**", "/api/analytics/**").hasAuthority("ADMIN")
+//                 .requestMatchers("/api/educator/**").hasAuthority("EDUCATOR")
+//                 .requestMatchers("/api/student/**").hasAuthority("STUDENT")
+//                 .requestMatchers("/api/certificates/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
+//                 .requestMatchers("/api/quizzes/**", "/api/quiz-attempts/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
+//                 .requestMatchers("/api/forums/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
+//                 .requestMatchers("/api/notifications/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
+//                 .anyRequest().authenticated()
+//             )
+//             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+//         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+//         return http.build();
+//     }
+// }
+
 package com.lms.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
-    @Autowired
-    private MyUserDetailsService myUserDetailsService;
-    @Autowired
-    private JwtRequestFilter jwtRequestFilter;
+public class SecurityConfig {
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(myUserDetailsService).passwordEncoder(passwordEncoder());
+    private final MyUserDetailsService myUserDetailsService;
+    private final JwtRequestFilter jwtRequestFilter;
+
+    public SecurityConfig(MyUserDetailsService myUserDetailsService, JwtRequestFilter jwtRequestFilter) {
+        this.myUserDetailsService = myUserDetailsService;
+        this.jwtRequestFilter = jwtRequestFilter;
+    }
+
+    // ✅ Use AuthenticationConfiguration to provide AuthenticationManager bean
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
@@ -31,26 +94,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Override
     @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/admin/**", "/api/analytics/**").hasAuthority("ADMIN")
+                .requestMatchers("/api/educator/**").hasAuthority("EDUCATOR")
+                .requestMatchers("/api/student/**").hasAuthority("STUDENT")
+                .requestMatchers("/api/certificates/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
+                .requestMatchers("/api/quizzes/**", "/api/quiz-attempts/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
+                .requestMatchers("/api/forums/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
+                .requestMatchers("/api/notifications/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-            .authorizeRequests()
-            .antMatchers("/api/auth/**").permitAll()
-            .antMatchers("/api/admin/**", "/api/analytics/**").hasAuthority("ADMIN")
-            .antMatchers("/api/educator/**").hasAuthority("EDUCATOR")
-            .antMatchers("/api/student/**").hasAuthority("STUDENT")
-            .antMatchers("/api/certificates/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
-            .antMatchers("/api/quizzes/**", "/api/quiz-attempts/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
-            .antMatchers("/api/forums/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
-            .antMatchers("/api/notifications/**").hasAnyAuthority("ADMIN", "EDUCATOR", "STUDENT")
-            .anyRequest().authenticated()
-            .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        // ✅ Add JWT filter before UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 }

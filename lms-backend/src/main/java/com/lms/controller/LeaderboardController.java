@@ -28,7 +28,12 @@ public class LeaderboardController {
         List<Map<String, Object>> leaderboard = userScores.entrySet().stream()
             .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder()))
             .limit(10)
-            .map(e -> Map.of("userId", e.getKey(), "score", e.getValue()))
+            .map(e -> {
+                java.util.Map<String, Object> m = new java.util.HashMap<>();
+                m.put("userId", e.getKey());
+                m.put("score", e.getValue());
+                return m;
+            })
             .collect(Collectors.toList());
         return ResponseEntity.ok(leaderboard);
     }

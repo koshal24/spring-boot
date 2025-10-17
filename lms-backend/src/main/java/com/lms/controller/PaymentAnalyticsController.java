@@ -19,7 +19,7 @@ public class PaymentAnalyticsController {
     @GetMapping
     public org.springframework.http.ResponseEntity<Map<String, Object>> getPaymentAnalytics() {
         List<Purchase> purchases = purchaseRepository.findAll();
-        double totalRevenue = purchases.stream().mapToDouble(Purchase::getAmount).sum();
+    double totalRevenue = purchases.stream().mapToDouble(p -> p.getAmount()).sum();
         int totalPayments = purchases.size();
         Map<String, Object> analytics = new HashMap<>();
         analytics.put("totalRevenue", totalRevenue);

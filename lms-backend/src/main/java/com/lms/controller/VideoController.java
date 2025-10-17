@@ -1,8 +1,10 @@
  package com.lms.controller;
 
 import com.lms.service.AzureStorageService;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.lms.controller.CourseController;
+import com.lms.service.CourseService;
+import com.lms.service.PurchaseService;
+import com.lms.service.SubscriptionService;
+import com.lms.model.Course;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,11 +33,15 @@ public class VideoController {
     }
 
     @Autowired
-    private CourseController courseController;
+    private CourseService courseService;
+    @Autowired
+    private PurchaseService purchaseService;
+    @Autowired
+    private SubscriptionService subscriptionService;
     @GetMapping("/stream/{courseId}/{userId}/{videoName}")
     public ResponseEntity<Map<String, String>> streamVideo(@PathVariable String courseId, @PathVariable String userId, @PathVariable String videoName) {
         Map<String, String> response = new HashMap<>();
-        Course course = courseController.courseService.getCourseById(courseId).orElse(null);
+        Course course = courseService.getCourseById(courseId).orElse(null);
         if (course == null) {
             response.put("error", "Course not found.");
             return ResponseEntity.status(404).body(response);
@@ -46,7 +52,11 @@ public class VideoController {
             response.put("videoUrl", videoUrl);
             return ResponseEntity.ok(response);
         }
-        boolean canAccess = courseController.canUserAccessCourse(courseId, userId);
+        boolean hasPurchase = purchaseService.getAllPurchases().stream()
+            .anyMatch(p -> userId.equals(p.getUserId()) && courseId.equals(p.getCourseId()));
+        boolean hasSubscription = subscriptionService.getAllSubscriptions().stream()
+            .anyMatch(s -> userId.equals(s.getUserId()) && s.isActive());
+        boolean canAccess = hasPurchase || hasSubscription;
         if (!canAccess) {
             response.put("error", "Access denied: Please purchase or subscribe to this course.");
             return ResponseEntity.status(403).body(response);

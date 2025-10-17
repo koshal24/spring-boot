@@ -25,6 +25,7 @@ public class ForumPost {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Reply {
+        private String id;
         private String userId;
         private String content;
         private Date timestamp;
