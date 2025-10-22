@@ -1,6 +1,12 @@
 package com.lms.controller;
 
 import com.lms.model.Certificate;
+import com.lms.model.User;
+import com.lms.model.Course;
+import com.lms.dto.CertificateRequest;
+import com.lms.dto.CertificateDTO;
+import com.lms.repository.UserRepository;
+import com.lms.repository.CourseRepository;
 import com.lms.service.CertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,25 +20,46 @@ public class CertificateController {
     @Autowired
     private CertificateService certificateService;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
+
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Certificate>> getCertificatesByUser(@PathVariable String userId) {
-        return ResponseEntity.ok(certificateService.getCertificatesByUserId(userId));
+    public ResponseEntity<List<CertificateDTO>> getCertificatesByUser(@PathVariable String userId) {
+        List<Certificate> list = certificateService.getCertificatesByUserId(userId);
+        List<CertificateDTO> dto = list.stream().map(this::toDto).toList();
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/course/{courseId}")
-    public ResponseEntity<List<Certificate>> getCertificatesByCourse(@PathVariable String courseId) {
-        return ResponseEntity.ok(certificateService.getCertificatesByCourseId(courseId));
+    public ResponseEntity<List<CertificateDTO>> getCertificatesByCourse(@PathVariable String courseId) {
+        List<Certificate> list = certificateService.getCertificatesByCourseId(courseId);
+        List<CertificateDTO> dto = list.stream().map(this::toDto).toList();
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Certificate> getCertificateById(@PathVariable String id) {
+    public ResponseEntity<CertificateDTO> getCertificateById(@PathVariable String id) {
         Optional<Certificate> cert = certificateService.getCertificateById(id);
-        return cert.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return cert.map(c -> ResponseEntity.ok(toDto(c))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public ResponseEntity<Certificate> issueCertificate(@RequestBody Certificate certificate) {
-        Certificate saved = certificateService.saveCertificate(certificate);
+    public ResponseEntity<Certificate> issueCertificate(@RequestBody CertificateRequest req) {
+        // Resolve user and course and create DBRef-backed Certificate
+        User user = userRepository.findById(req.getUserId()).orElse(null);
+        Course course = courseRepository.findById(req.getCourseId()).orElse(null);
+        if (user == null || course == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        Certificate cert = new Certificate();
+        cert.setUser(user);
+        cert.setCourse(course);
+        cert.setCertificateUrl(req.getCertificateUrl());
+        cert.setIssuedAt(System.currentTimeMillis());
+        Certificate saved = certificateService.saveCertificate(cert);
         return ResponseEntity.ok(saved);
     }
 
@@ -40,5 +67,21 @@ public class CertificateController {
     public ResponseEntity<Void> deleteCertificate(@PathVariable String id) {
         certificateService.deleteCertificate(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private CertificateDTO toDto(Certificate c) {
+        CertificateDTO dto = new CertificateDTO();
+        dto.setId(c.getId());
+        if (c.getUser() != null) {
+            dto.setUserId(c.getUser().getId());
+            dto.setUserName(c.getUser().getName());
+        }
+        if (c.getCourse() != null) {
+            dto.setCourseId(c.getCourse().getId());
+            dto.setCourseTitle(c.getCourse().getTitle());
+        }
+        dto.setCertificateUrl(c.getCertificateUrl());
+        dto.setIssuedAt(c.getIssuedAt());
+        return dto;
     }
 }

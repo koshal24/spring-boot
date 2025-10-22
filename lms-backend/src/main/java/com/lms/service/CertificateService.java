@@ -1,7 +1,11 @@
 package com.lms.service;
 
 import com.lms.model.Certificate;
+import com.lms.model.User;
+import com.lms.model.Course;
 import com.lms.repository.CertificateRepository;
+import com.lms.repository.UserRepository;
+import com.lms.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -12,12 +16,18 @@ public class CertificateService {
     @Autowired
     private CertificateRepository certificateRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
+
     public List<Certificate> getCertificatesByUserId(String userId) {
-        return certificateRepository.findByUserId(userId);
+        return certificateRepository.findByUser_Id(userId);
     }
 
     public List<Certificate> getCertificatesByCourseId(String courseId) {
-        return certificateRepository.findByCourseId(courseId);
+        return certificateRepository.findByCourse_Id(courseId);
     }
 
     public Optional<Certificate> getCertificateById(String id) {

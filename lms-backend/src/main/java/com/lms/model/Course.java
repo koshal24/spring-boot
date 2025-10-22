@@ -19,5 +19,5 @@ public class Course {
     private String educatorId;
     private List<String> enrolledUserIds;
     private double price; // 0 for free, >0 for paid
-    private boolean isPaid; // true for paid, false for free
+    private boolean paid; // true for paid, false for free
 }
