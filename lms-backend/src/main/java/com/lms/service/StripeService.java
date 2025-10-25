@@ -13,11 +13,29 @@ public class StripeService {
         Stripe.apiKey = secretKey;
     }
 
-    public PaymentIntent createPaymentIntent(long amount, String currency) throws StripeException {
-        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+    public PaymentIntent createPaymentIntent(long amount, String currency, String userId, String courseId) throws StripeException {
+        // Enable Stripe automatic payment methods so Stripe can surface available payment methods
+        PaymentIntentCreateParams.AutomaticPaymentMethods automaticPaymentMethods =
+                PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
+                        .setEnabled(true)
+                        .build();
+
+        PaymentIntentCreateParams.Builder builder = PaymentIntentCreateParams.builder()
                 .setAmount(amount)
                 .setCurrency(currency)
-                .build();
+                .setAutomaticPaymentMethods(automaticPaymentMethods)
+                .putMetadata("userId", userId)
+                .putMetadata("courseId", courseId);
+
+        // Attach metadata so webhook handlers can identify the user/course for the payment
+        if (userId != null) {
+            builder.putMetadata("userId", userId);
+        }
+        if (courseId != null) {
+            builder.putMetadata("courseId", courseId);
+        }
+
+        PaymentIntentCreateParams params = builder.build();
         return PaymentIntent.create(params);
     }
 }

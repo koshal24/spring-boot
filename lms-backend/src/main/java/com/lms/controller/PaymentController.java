@@ -19,9 +19,12 @@ public class PaymentController {
     public ResponseEntity<Map<String, Object>> createPaymentIntent(@RequestBody Map<String, Object> request) {
         long amount = Long.parseLong(request.get("amount").toString());
         String currency = request.getOrDefault("currency", "usd").toString();
+        String userId = request.containsKey("userId") && request.get("userId") != null ? request.get("userId").toString() : null;
+        String courseId = request.containsKey("courseId") && request.get("courseId") != null ? request.get("courseId").toString() : null;
+
         Map<String, Object> response = new HashMap<>();
         try {
-            PaymentIntent paymentIntent = stripeService.createPaymentIntent(amount, currency);
+            PaymentIntent paymentIntent = stripeService.createPaymentIntent(amount, currency, userId, courseId);
             response.put("clientSecret", paymentIntent.getClientSecret());
             return ResponseEntity.ok(response);
         } catch (StripeException e) {
