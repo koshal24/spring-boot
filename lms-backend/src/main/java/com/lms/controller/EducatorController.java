@@ -1,9 +1,9 @@
 package com.lms.controller;
 
 import com.lms.model.Course;
-import com.lms.model.User;
+import com.lms.model.Educator;
 import com.lms.service.CourseService;
-import com.lms.service.UserService;
+import com.lms.service.EducatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/educator")
 public class EducatorController {
     @Autowired
-    private UserService userService;
+    private EducatorService educatorService;
     @Autowired
     private CourseService courseService;
 
@@ -25,15 +25,15 @@ public class EducatorController {
     public ResponseEntity<Course> uploadCourse(@RequestBody Course course, @RequestParam String educatorId) {
         course.setEducatorId(educatorId);
         Course savedCourse = courseService.saveCourse(course);
-        Optional<User> educatorOpt = userService.getUserById(educatorId);
+        Optional<Educator> educatorOpt = educatorService.getEducatorById(educatorId);
         if (educatorOpt.isPresent()) {
-            User educator = educatorOpt.get();
+            Educator educator = educatorOpt.get();
             if (educator.getUploadedCourses() != null) {
                 educator.getUploadedCourses().add(savedCourse.getId());
             } else {
                 educator.setUploadedCourses(List.of(savedCourse.getId()));
             }
-            userService.saveUser(educator);
+            educatorService.saveEducator(educator);
         }
         return ResponseEntity.ok(savedCourse);
     }

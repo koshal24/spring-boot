@@ -1,7 +1,11 @@
 package com.lms.controller;
 
 import com.lms.model.User;
+import com.lms.model.Educator;
+import com.lms.model.Admin;
 import com.lms.repository.UserRepository;
+import com.lms.repository.EducatorRepository;
+import com.lms.repository.AdminRepository;
 import com.lms.security.JwtUtil;
 import com.lms.security.MyUserDetailsService;
 import com.lms.dto.LoginRequest;
@@ -32,6 +36,10 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private EducatorRepository educatorRepository;
+    @Autowired
+    private AdminRepository adminRepository;
+    @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private EmailService emailService;
@@ -42,21 +50,40 @@ public class AuthController {
         String password = request.getPassword();
         Map<String, Object> response = new HashMap<>();
         try {
-            // Check if user exists and is verified before authenticating
-            User userEntity = userRepository.findAll().stream().filter(u -> u.getEmail().equals(email)).findFirst().orElse(null);
-            if (userEntity == null) {
+            // Find the user across Admin, Educator, and Student collections
+            Admin admin = adminRepository.findAll().stream().filter(a -> a.getEmail().equals(email)).findFirst().orElse(null);
+            Educator educator = null;
+            User student = null;
+            String role = null;
+
+            if (admin != null) {
+                role = "ADMIN";
+            } else {
+                educator = educatorRepository.findAll().stream().filter(e -> e.getEmail().equals(email)).findFirst().orElse(null);
+                if (educator != null) role = "EDUCATOR";
+                else {
+                    student = userRepository.findAll().stream().filter(u -> u.getEmail().equals(email)).findFirst().orElse(null);
+                    if (student != null) role = "STUDENT";
+                }
+            }
+
+            if (role == null) {
                 response.put("error", "Invalid credentials");
                 return ResponseEntity.status(401).body(response);
             }
-            if (!userEntity.isVerified()) {
+
+            // For student and educator, require email verification
+            if (("STUDENT".equals(role) && (student == null || !student.isVerified())) || ("EDUCATOR".equals(role) && (educator == null || !educator.isVerified()))) {
                 response.put("error", "Email not verified");
                 return ResponseEntity.status(403).body(response);
             }
+
+            // Authenticate using configured AuthenticationManager which will consult UserDetailsService
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
             final UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            final String jwt = jwtUtil.generateToken(userDetails.getUsername(), userEntity.getRole());
+            final String jwt = jwtUtil.generateToken(userDetails.getUsername(), role);
             response.put("token", jwt);
-            response.put("role", userEntity.getRole());
+            response.put("role", role);
             response.put("message", "Login successful");
             return ResponseEntity.ok(response);
         } catch (AuthenticationException e) {
@@ -68,30 +95,23 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest request) {
         Map<String, Object> response = new HashMap<>();
-        if (userRepository.findAll().stream().anyMatch(u -> u.getEmail().equals(request.getEmail()))) {
+        // ensure the email is not already used in any user-type collection
+        boolean exists = userRepository.findAll().stream().anyMatch(u -> u.getEmail().equals(request.getEmail()))
+                || educatorRepository.findAll().stream().anyMatch(e -> e.getEmail().equals(request.getEmail()))
+                || adminRepository.findAll().stream().anyMatch(a -> a.getEmail().equals(request.getEmail()));
+        if (exists) {
             response.put("error", "Email already exists");
             return ResponseEntity.status(409).body(response);
         }
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
+        // Registration only creates students. Role field is ignored or must be STUDENT.
         String role = request.getRole();
-        if (role == null || role.isBlank()) {
-            role = "STUDENT";
-        }
-        String roleUpper = role.toUpperCase();
-        // Do NOT allow users to self-assign ADMIN role during registration
-        if ("ADMIN".equals(roleUpper)) {
-            response.put("error", "Cannot assign ADMIN role via registration");
+        if (role != null && !role.isBlank() && !"STUDENT".equalsIgnoreCase(role)) {
+            response.put("error", "Cannot self-assign roles other than STUDENT during registration");
             return ResponseEntity.status(403).body(response);
         }
-        try {
-            com.lms.model.Role.valueOf(roleUpper);
-        } catch (IllegalArgumentException ex) {
-            response.put("error", "Invalid role");
-            return ResponseEntity.badRequest().body(response);
-        }
-        user.setRole(roleUpper);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setVerified(false);
         // generate verification code

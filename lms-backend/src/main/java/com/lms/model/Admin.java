@@ -5,23 +5,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.util.List;
-import java.time.Instant;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "users")
-public class User {
+@Document(collection = "admins")
+public class Admin {
     @Id
     private String id;
     private String name;
     private String email;
     private String password;
-    // Students: keep minimal student-related fields
-    private List<String> purchasedCourses;
-    // Email verification fields
-    private boolean verified = false;
-    private String verificationCode;
-    private Instant verificationExpiry;
 }

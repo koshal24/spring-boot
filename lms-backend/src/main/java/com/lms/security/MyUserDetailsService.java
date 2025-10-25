@@ -2,6 +2,8 @@ package com.lms.security;
 
 import com.lms.model.User;
 import com.lms.repository.UserRepository;
+import com.lms.repository.EducatorRepository;
+import com.lms.repository.AdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,43 +19,53 @@ import java.util.stream.Collectors;
 public class MyUserDetailsService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EducatorRepository educatorRepository;
+    @Autowired
+    private AdminRepository adminRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findAll().stream()
-                .filter(u -> u.getEmail().equals(email))
-                .findFirst()
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        // Look up user across student, educator, admin collections and assign authority accordingly
+        String foundEmail = null;
+        String password = null;
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        // If User has roles or a role field, map them. Adjust according to your User model.
-        try {
-            // Attempt to read a single role field
-            java.lang.reflect.Method getRole = user.getClass().getMethod("getRole");
-            Object roleObj = getRole.invoke(user);
-            if (roleObj != null) {
-                authorities.add(new SimpleGrantedAuthority(roleObj.toString()));
-            }
-        } catch (Exception ignored) {
-            // fallback to roles list if available
-            try {
-                java.lang.reflect.Method getRoles = user.getClass().getMethod("getRoles");
-                Object rolesObj = getRoles.invoke(user);
-                if (rolesObj instanceof List) {
-                    List<?> rolesList = (List<?>) rolesObj;
-                    authorities.addAll(rolesList.stream().map(Object::toString).map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
-                }
-            } catch (Exception ignored2) {
-                // no role information available - leave empty authorities
+
+        // Admins
+        var adminOpt = adminRepository.findAll().stream().filter(a -> a.getEmail().equals(email)).findFirst();
+        if (adminOpt.isPresent()) {
+            foundEmail = adminOpt.get().getEmail();
+            password = adminOpt.get().getPassword();
+            authorities.add(new SimpleGrantedAuthority("ADMIN"));
+        }
+
+        // Educators
+        if (foundEmail == null) {
+            var edOpt = educatorRepository.findAll().stream().filter(e -> e.getEmail().equals(email)).findFirst();
+            if (edOpt.isPresent()) {
+                foundEmail = edOpt.get().getEmail();
+                password = edOpt.get().getPassword();
+                authorities.add(new SimpleGrantedAuthority("EDUCATOR"));
             }
         }
 
-        if (authorities.isEmpty()) {
-            authorities = Collections.emptyList();
+        // Students
+        if (foundEmail == null) {
+            var userOpt = userRepository.findAll().stream().filter(u -> u.getEmail().equals(email)).findFirst();
+            if (userOpt.isPresent()) {
+                foundEmail = userOpt.get().getEmail();
+                password = userOpt.get().getPassword();
+                authorities.add(new SimpleGrantedAuthority("STUDENT"));
+            }
+        }
+
+        if (foundEmail == null) {
+            throw new UsernameNotFoundException("User not found");
         }
 
         return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
+                .withUsername(foundEmail)
+                .password(password)
                 .authorities(authorities)
                 .build();
     }
