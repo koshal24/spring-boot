@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import com.lms.dto.RoleChangeRequest;
+import com.lms.repository.UserRepository;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -22,6 +25,8 @@ public class AdminController {
     private CourseService courseService;
     @Autowired
     private PurchaseService purchaseService;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private CourseProgressService courseProgressService;
 
@@ -42,5 +47,20 @@ public class AdminController {
         return ResponseEntity.ok(report);
     }
 
-    // Add more admin endpoints as needed
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/users/{id}/role")
+    public ResponseEntity<Map<String, Object>> changeUserRole(@PathVariable String id, @Valid @RequestBody RoleChangeRequest req) {
+        return userRepository.findById(id).map(u -> {
+            u.setRole(req.getRole());
+            userRepository.save(u);
+            Map<String, Object> body = new HashMap<>();
+            body.put("message", "role updated");
+            return ResponseEntity.ok(body);
+        }).orElseGet(() -> {
+            Map<String, Object> body = new HashMap<>();
+            body.put("error", "User not found");
+            return ResponseEntity.status(404).body(body);
+        });
+    }
+
 }

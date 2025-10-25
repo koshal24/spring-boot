@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.util.List;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -21,5 +22,8 @@ public class User {
     private String bio; // Educator bio (optional)
     private List<String> uploadedCourses; // For educators: list of course IDs they uploaded
     private List<String> purchasedCourses;
-    // Add other fields as needed
+    // Email verification fields
+    private boolean verified = false;
+    private String verificationCode;
+    private Instant verificationExpiry;
 }

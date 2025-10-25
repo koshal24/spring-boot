@@ -55,6 +55,7 @@ public class CourseController {
         return ResponseEntity.ok(paidCourses);
     }
 
+    // API for All Users, without authentication
     @GetMapping
     public ResponseEntity<List<Course>> getAllCourses() {
         return ResponseEntity.ok(courseService.getAllCourses());
@@ -66,6 +67,7 @@ public class CourseController {
         return course.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // API for Educator
     @PostMapping
     public ResponseEntity<Course> createCourse(@RequestBody Course course) {
         Course saved = courseService.saveCourse(course);

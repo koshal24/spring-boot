@@ -79,6 +79,12 @@ public class JwtUtil {
         return createToken(claims, username);
     }
 
+    public String generateToken(String username, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        if (role != null) claims.put("role", role);
+        return createToken(claims, username);
+    }
+
     private String createToken(Map<String, Object> claims, String subject) {
         long validityMillis = 1000L * 60 * 60 * 10; // 10 hours
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
@@ -96,5 +102,9 @@ public class JwtUtil {
             logger.debug("Token validation error: {}", e.getMessage());
             return false;
         }
+    }
+
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
     }
 }

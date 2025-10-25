@@ -2,6 +2,8 @@ package com.lms.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import com.lms.model.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -18,6 +20,6 @@ public class Course {
     private String description;
     private String educatorId;
     private List<String> enrolledUserIds;
-    private double price; // 0 for free, >0 for paid
-    private boolean paid; // true for paid, false for free
+    private double price; 
+    private boolean paid; 
 }

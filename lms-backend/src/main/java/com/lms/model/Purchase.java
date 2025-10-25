@@ -18,5 +18,4 @@ public class Purchase {
     private String courseId;
     private Date purchaseDate;
     private double amount;
-    // Add other fields as needed
 }
