@@ -1,7 +1,10 @@
 package com.lms.controller;
 
 import com.lms.model.User;
+import com.lms.model.Admin;
+import com.lms.model.Role;
 import com.lms.repository.UserRepository;
+import com.lms.repository.AdminRepository;
 import com.lms.security.JwtUtil;
 import com.lms.security.MyUserDetailsService;
 import com.lms.dto.LoginRequest;
@@ -32,6 +35,8 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
     @Autowired
+    private AdminRepository adminRepository;
+    @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private EmailService emailService;
@@ -42,21 +47,33 @@ public class AuthController {
         String password = request.getPassword();
         Map<String, Object> response = new HashMap<>();
         try {
-            // Check if user exists and is verified before authenticating
-            User userEntity = userRepository.findAll().stream().filter(u -> u.getEmail().equals(email)).findFirst().orElse(null);
-            if (userEntity == null) {
+            // Find account: admin first, otherwise check users collection for role
+            Admin admin = adminRepository.findByEmail(email).orElse(null);
+            User student = null;
+            String role = null;
+
+            if (admin != null) {
+                role = Role.ADMIN.name();
+            } else {
+                student = userRepository.findByEmail(email).orElse(null);
+                if (student != null) role = student.getRole() != null ? student.getRole().name() : Role.STUDENT.name();
+            }
+
+            if (role == null) {
                 response.put("error", "Invalid credentials");
                 return ResponseEntity.status(401).body(response);
             }
-            if (!userEntity.isVerified()) {
+
+            // require verification for students and educators (stored on User)
+            if ((Role.STUDENT.name().equals(role) && (student == null || !student.isVerified())) || (Role.EDUCATOR.name().equals(role) && (student == null || !student.isVerified()))) {
                 response.put("error", "Email not verified");
                 return ResponseEntity.status(403).body(response);
             }
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
             final UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            final String jwt = jwtUtil.generateToken(userDetails.getUsername(), userEntity.getRole());
+            final String jwt = jwtUtil.generateToken(userDetails.getUsername(), role);
             response.put("token", jwt);
-            response.put("role", userEntity.getRole());
+            response.put("role", role);
             response.put("message", "Login successful");
             return ResponseEntity.ok(response);
         } catch (AuthenticationException e) {
@@ -68,30 +85,17 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody RegisterRequest request) {
         Map<String, Object> response = new HashMap<>();
-        if (userRepository.findAll().stream().anyMatch(u -> u.getEmail().equals(request.getEmail()))) {
+    boolean exists = userRepository.findByEmail(request.getEmail()).isPresent()
+        || adminRepository.findByEmail(request.getEmail()).isPresent();
+    if (exists) {
             response.put("error", "Email already exists");
             return ResponseEntity.status(409).body(response);
         }
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        String role = request.getRole();
-        if (role == null || role.isBlank()) {
-            role = "STUDENT";
-        }
-        String roleUpper = role.toUpperCase();
-        // Do NOT allow users to self-assign ADMIN role during registration
-        if ("ADMIN".equals(roleUpper)) {
-            response.put("error", "Cannot assign ADMIN role via registration");
-            return ResponseEntity.status(403).body(response);
-        }
-        try {
-            com.lms.model.Role.valueOf(roleUpper);
-        } catch (IllegalArgumentException ex) {
-            response.put("error", "Invalid role");
-            return ResponseEntity.badRequest().body(response);
-        }
-        user.setRole(roleUpper);
+        // Registration creates STUDENT accounts only. Ignore role in request.
+        user.setRole(Role.STUDENT);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setVerified(false);
         // generate verification code
@@ -105,6 +109,40 @@ public class AuthController {
 
         response.put("message", "Registration pending verification. Check your email for the code.");
         return ResponseEntity.status(201).body(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Object>> me(@RequestHeader(name = "Authorization", required = false) String authHeader) {
+        Map<String, Object> resp = new HashMap<>();
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(Map.of("error", "Missing or invalid Authorization header"));
+        }
+        String token = authHeader.substring(7);
+        String email;
+        try {
+            email = jwtUtil.extractUsername(token);
+        } catch (Exception ex) {
+            return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
+        }
+        // find which account type
+        Admin admin = adminRepository.findByEmail(email).orElse(null);
+        if (admin != null) {
+            resp.put("id", admin.getId());
+            resp.put("email", admin.getEmail());
+            resp.put("name", admin.getName());
+            resp.put("role", Role.ADMIN.name());
+            return ResponseEntity.ok(resp);
+        }
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user != null) {
+            resp.put("id", user.getId());
+            resp.put("email", user.getEmail());
+            resp.put("name", user.getName());
+            resp.put("role", user.getRole() != null ? user.getRole().name() : Role.STUDENT.name());
+            resp.put("verified", user.isVerified());
+            return ResponseEntity.ok(resp);
+        }
+        return ResponseEntity.status(404).body(Map.of("error", "User not found"));
     }
 
     @PostMapping("/verify")

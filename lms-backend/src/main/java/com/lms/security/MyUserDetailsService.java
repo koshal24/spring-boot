@@ -1,7 +1,9 @@
 package com.lms.security;
 
 import com.lms.model.User;
+import com.lms.model.Admin;
 import com.lms.repository.UserRepository;
+import com.lms.repository.AdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -9,51 +11,47 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AdminRepository adminRepository;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findAll().stream()
-                .filter(u -> u.getEmail().equals(email))
-                .findFirst()
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        String foundEmail = null;
+        String password = null;
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        // If User has roles or a role field, map them. Adjust according to your User model.
-        try {
-            // Attempt to read a single role field
-            java.lang.reflect.Method getRole = user.getClass().getMethod("getRole");
-            Object roleObj = getRole.invoke(user);
-            if (roleObj != null) {
-                authorities.add(new SimpleGrantedAuthority(roleObj.toString()));
-            }
-        } catch (Exception ignored) {
-            // fallback to roles list if available
-            try {
-                java.lang.reflect.Method getRoles = user.getClass().getMethod("getRoles");
-                Object rolesObj = getRoles.invoke(user);
-                if (rolesObj instanceof List) {
-                    List<?> rolesList = (List<?>) rolesObj;
-                    authorities.addAll(rolesList.stream().map(Object::toString).map(SimpleGrantedAuthority::new).collect(Collectors.toList()));
-                }
-            } catch (Exception ignored2) {
-                // no role information available - leave empty authorities
+
+        // Admins stored separately (if present)
+        var adminOpt = adminRepository.findByEmail(email);
+        if (adminOpt.isPresent()) {
+            foundEmail = adminOpt.get().getEmail();
+            password = adminOpt.get().getPassword();
+            authorities.add(new SimpleGrantedAuthority("ADMIN"));
+        }
+
+        // Users (students, educators) - single collection with role enum
+        if (foundEmail == null) {
+            var userOpt = userRepository.findByEmail(email);
+            if (userOpt.isPresent()) {
+                foundEmail = userOpt.get().getEmail();
+                password = userOpt.get().getPassword();
+                String role = userOpt.get().getRole() != null ? userOpt.get().getRole().name() : "STUDENT";
+                authorities.add(new SimpleGrantedAuthority(role));
             }
         }
 
-        if (authorities.isEmpty()) {
-            authorities = Collections.emptyList();
+        if (foundEmail == null) {
+            throw new UsernameNotFoundException("User not found");
         }
 
         return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
+                .withUsername(foundEmail)
+                .password(password)
                 .authorities(authorities)
                 .build();
     }

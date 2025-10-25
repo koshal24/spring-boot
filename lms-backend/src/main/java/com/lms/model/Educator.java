@@ -3,7 +3,6 @@ package com.lms.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.DBRef;
-import com.lms.model.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -12,17 +11,15 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "courses")
-public class Course {
+@Document(collection = "educators")
+public class Educator {
     @Id
     private String id;
-    private String title;
-    private String description;
+    private String name;
+    private String email;
+    private String password;
+    private String bio;
     @DBRef
-    private User educator; // reference to educator user document (stores user id)
-
-    @DBRef
-    private List<User> enrolledUsers; // references to user documents (stores user ids)
-    private double price; 
-    private boolean paid; 
+    private List<Course> uploadedCourses;
+    private boolean verified = false;
 }

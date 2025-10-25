@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.util.List;
 import java.time.Instant;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import com.lms.model.Role;
+import com.lms.model.Course;
 
 @Data
 @NoArgsConstructor
@@ -18,10 +21,12 @@ public class User {
     private String name;
     private String email;
     private String password;
-    private String role; // e.g., ADMIN, EDUCATOR, STUDENT
+    private Role role = Role.STUDENT; // Role for this account (enum)
     private String bio; // Educator bio (optional)
-    private List<String> uploadedCourses; // For educators: list of course IDs they uploaded
-    private List<String> purchasedCourses;
+    @DBRef
+    private List<Course> uploadedCourses; // references to courses uploaded by educator (DBRef -> course ids)
+    @DBRef
+    private List<Course> purchasedCourses; // Students: reference to purchased courses (stored as DBRefs -> course ids)
     // Email verification fields
     private boolean verified = false;
     private String verificationCode;

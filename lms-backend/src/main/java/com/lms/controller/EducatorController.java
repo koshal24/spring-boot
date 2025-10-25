@@ -23,27 +23,29 @@ public class EducatorController {
     @PostMapping("/courses")
     @PreAuthorize("hasAuthority('EDUCATOR')")
     public ResponseEntity<Course> uploadCourse(@RequestBody Course course, @RequestParam String educatorId) {
-        course.setEducatorId(educatorId);
-        Course savedCourse = courseService.saveCourse(course);
-        Optional<User> educatorOpt = userService.getUserById(educatorId);
-        if (educatorOpt.isPresent()) {
-            User educator = educatorOpt.get();
-            if (educator.getUploadedCourses() != null) {
-                educator.getUploadedCourses().add(savedCourse.getId());
-            } else {
-                educator.setUploadedCourses(List.of(savedCourse.getId()));
-            }
-            userService.saveUser(educator);
+        // Find educator (stored as a User with role EDUCATOR) and set DBRef
+        var edOpt = userService.getUserById(educatorId);
+        if (edOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(null);
         }
+        User ed = edOpt.get();
+        course.setEducator(ed);
+        Course savedCourse = courseService.saveCourse(course);
+        if (ed.getUploadedCourses() != null) {
+            ed.getUploadedCourses().add(savedCourse);
+        } else {
+            ed.setUploadedCourses(List.of(savedCourse));
+        }
+        userService.saveUser(ed);
         return ResponseEntity.ok(savedCourse);
     }
 
     @GetMapping("/courses")
     @PreAuthorize("hasAuthority('EDUCATOR')")
     public ResponseEntity<List<Course>> getMyCourses(@RequestParam String educatorId) {
-        List<Course> courses = courseService.getAllCourses().stream()
-                .filter(c -> educatorId.equals(c.getEducatorId()))
-                .collect(Collectors.toList());
+    List<Course> courses = courseService.getAllCourses().stream()
+        .filter(c -> c.getEducator() != null && educatorId.equals(c.getEducator().getId()))
+        .collect(Collectors.toList());
         return ResponseEntity.ok(courses);
     }
 
@@ -51,13 +53,13 @@ public class EducatorController {
     @PreAuthorize("hasAuthority('EDUCATOR')")
     public ResponseEntity<List<Object>> getCourseEnrollments(@RequestParam String educatorId) {
         List<Course> courses = courseService.getAllCourses().stream()
-                .filter(c -> educatorId.equals(c.getEducatorId()))
+                .filter(c -> c.getEducator() != null && educatorId.equals(c.getEducator().getId()))
                 .collect(Collectors.toList());
         List<Object> enrollments = courses.stream().map(c -> {
             return new Object() {
                 public String courseId = c.getId();
                 public String title = c.getTitle();
-                public int enrolledCount = c.getEnrolledUserIds() != null ? c.getEnrolledUserIds().size() : 0;
+                public int enrolledCount = c.getEnrolledUsers() != null ? c.getEnrolledUsers().size() : 0;
             };
         }).collect(Collectors.toList());
         return ResponseEntity.ok(enrollments);

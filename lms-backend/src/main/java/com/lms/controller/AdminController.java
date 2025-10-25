@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import com.lms.dto.RoleChangeRequest;
+import com.lms.model.Role;
 import com.lms.repository.UserRepository;
 import jakarta.validation.Valid;
 
@@ -51,11 +52,18 @@ public class AdminController {
     @PostMapping("/users/{id}/role")
     public ResponseEntity<Map<String, Object>> changeUserRole(@PathVariable String id, @Valid @RequestBody RoleChangeRequest req) {
         return userRepository.findById(id).map(u -> {
-            u.setRole(req.getRole());
-            userRepository.save(u);
-            Map<String, Object> body = new HashMap<>();
-            body.put("message", "role updated");
-            return ResponseEntity.ok(body);
+            try {
+                Role r = Role.valueOf(req.getRole());
+                u.setRole(r);
+                userRepository.save(u);
+                Map<String, Object> body = new HashMap<>();
+                body.put("message", "role updated");
+                return ResponseEntity.ok(body);
+            } catch (IllegalArgumentException ex) {
+                Map<String, Object> err = new HashMap<>();
+                err.put("error", "Invalid role value");
+                return ResponseEntity.badRequest().body(err);
+            }
         }).orElseGet(() -> {
             Map<String, Object> body = new HashMap<>();
             body.put("error", "User not found");

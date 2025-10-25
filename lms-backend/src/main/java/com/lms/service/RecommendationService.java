@@ -20,11 +20,11 @@ public class RecommendationService {
     public List<Course> recommendCourses(String userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) return List.of();
-        List<String> purchased = user.getPurchasedCourses();
-        // Recommend courses not yet purchased by user
-        return courseRepository.findAll().stream()
-                .filter(course -> purchased == null || !purchased.contains(course.getId()))
-                .limit(5)
-                .collect(Collectors.toList());
+    List<String> purchased = user.getPurchasedCourses() == null ? List.of() : user.getPurchasedCourses().stream().map(Course::getId).collect(Collectors.toList());
+    // Recommend courses not yet purchased by user
+    return courseRepository.findAll().stream()
+        .filter(course -> !purchased.contains(course.getId()))
+        .limit(5)
+        .collect(Collectors.toList());
     }
 }

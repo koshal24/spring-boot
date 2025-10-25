@@ -9,12 +9,11 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "course_progress")
-public class CourseProgress {
+@Document(collection = "admins")
+public class Admin {
     @Id
     private String id;
-    private String userId;
-    private String courseId;
-    private int completedLessons;
-    private int totalLessons;
+    private String name;
+    private String email;
+    private String password;
 }
