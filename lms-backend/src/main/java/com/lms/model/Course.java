@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.util.List;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -25,4 +26,6 @@ public class Course {
     private List<User> enrolledUsers; // references to user documents (stores user ids)
     private double price; 
     private boolean paid; 
+    // explicit createdAt timestamp used for sorting "new" courses
+    private Instant createdAt;
 }

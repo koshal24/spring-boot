@@ -14,7 +14,8 @@ import java.util.Date;
 public class Subscription {
     @Id
     private String id;
-    private String userId;
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private User user;
     private String planId;
     private Date startDate;
     private Date endDate;

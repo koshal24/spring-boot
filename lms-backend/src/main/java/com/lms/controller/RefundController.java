@@ -28,9 +28,13 @@ public class RefundController {
     }
 
     @PostMapping
-    public org.springframework.http.ResponseEntity<Refund> createRefund(@RequestBody Refund refund) {
-        Refund saved = refundService.saveRefund(refund);
-        return org.springframework.http.ResponseEntity.ok(saved);
+    public org.springframework.http.ResponseEntity<?> createRefund(@RequestBody com.lms.dto.RefundRequest req) {
+        try {
+            Refund saved = refundService.saveRefundByIds(req.getPurchaseId(), req.getUserId(), req.getAmount(), req.getRefundDate(), req.getReason());
+            return org.springframework.http.ResponseEntity.ok(saved);
+        } catch (IllegalArgumentException e) {
+            return org.springframework.http.ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

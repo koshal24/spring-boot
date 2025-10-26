@@ -10,8 +10,11 @@ import java.util.List;
 public class QuizAttempt {
     @Id
     private String id;
-    private String quizId;
-    private String userId;
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private Quiz quiz;
+
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private User user;
     private List<Integer> selectedOptions; // index per question
     private int score;
     private long timestamp;

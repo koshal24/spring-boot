@@ -2,6 +2,7 @@ package com.lms.controller;
 
 import com.lms.model.Purchase;
 import com.lms.service.PurchaseService;
+import com.lms.dto.PurchaseRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -27,9 +28,13 @@ public class PurchaseController {
     }
 
     @PostMapping
-    public org.springframework.http.ResponseEntity<Purchase> createPurchase(@RequestBody Purchase purchase) {
-        Purchase saved = purchaseService.savePurchase(purchase);
-        return org.springframework.http.ResponseEntity.ok(saved);
+    public org.springframework.http.ResponseEntity<?> createPurchase(@RequestBody PurchaseRequest req) {
+        try {
+            Purchase saved = purchaseService.savePurchaseByIds(req.getUserId(), req.getCourseId(), req.getPurchaseDate(), req.getAmount());
+            return org.springframework.http.ResponseEntity.ok(saved);
+        } catch (IllegalArgumentException e) {
+            return org.springframework.http.ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

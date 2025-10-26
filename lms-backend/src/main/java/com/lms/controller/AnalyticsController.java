@@ -5,7 +5,7 @@ import com.lms.model.QuizAttempt;
 import com.lms.model.Purchase;
 import com.lms.repository.CourseProgressRepository;
 import com.lms.repository.QuizAttemptRepository;
-import com.lms.repository.PurchaseRepository;
+import com.lms.service.PurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,15 +23,15 @@ public class AnalyticsController {
     @Autowired
     private QuizAttemptRepository quizAttemptRepository;
     @Autowired
-    private PurchaseRepository purchaseRepository;
+    private PurchaseService purchaseService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> getDashboardAnalytics() {
         Map<String, Object> analytics = new HashMap<>();
         analytics.put("totalCourseProgress", courseProgressRepository.count());
         analytics.put("totalQuizAttempts", quizAttemptRepository.count());
-        analytics.put("totalPurchases", purchaseRepository.count());
-        analytics.put("revenue", purchaseRepository.findAll().stream().mapToDouble(Purchase::getAmount).sum());
+        analytics.put("totalPurchases", purchaseService.getAllPurchases().size());
+        analytics.put("revenue", purchaseService.getTotalRevenue());
         return ResponseEntity.ok(analytics);
     }
 
@@ -47,7 +47,7 @@ public class AnalyticsController {
 
     @GetMapping("/revenue")
     public ResponseEntity<Double> getTotalRevenue() {
-        double revenue = purchaseRepository.findAll().stream().mapToDouble(Purchase::getAmount).sum();
+        double revenue = purchaseService.getTotalRevenue();
         return ResponseEntity.ok(revenue);
     }
 }

@@ -13,11 +13,11 @@ public class CourseReviewService {
     private CourseReviewRepository courseReviewRepository;
 
     public List<CourseReview> getReviewsByCourseId(String courseId) {
-        return courseReviewRepository.findByCourseId(courseId);
+        return courseReviewRepository.findByCourse_Id(courseId);
     }
 
     public List<CourseReview> getReviewsByUserId(String userId) {
-        return courseReviewRepository.findByUserId(userId);
+        return courseReviewRepository.findByUser_Id(userId);
     }
 
     public Optional<CourseReview> getReviewById(String id) {

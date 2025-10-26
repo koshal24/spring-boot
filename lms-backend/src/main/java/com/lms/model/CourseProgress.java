@@ -13,8 +13,11 @@ import lombok.AllArgsConstructor;
 public class CourseProgress {
     @Id
     private String id;
-    private String userId;
-    private String courseId;
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private User user;
+
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private Course course;
     private int completedLessons;
     private int totalLessons;
 }

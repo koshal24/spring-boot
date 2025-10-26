@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface ForumPostRepository extends MongoRepository<ForumPost, String> {
-    List<ForumPost> findByCourseId(String courseId);
+    List<ForumPost> findByCourse_Id(String courseId);
 }

@@ -1,7 +1,7 @@
 package com.lms.controller;
 
 import com.lms.model.Purchase;
-import com.lms.repository.PurchaseRepository;
+import com.lms.service.PurchaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,13 +14,12 @@ import java.util.Map;
 @RequestMapping("/api/admin/payments/analytics")
 public class PaymentAnalyticsController {
     @Autowired
-    private PurchaseRepository purchaseRepository;
+    private PurchaseService purchaseService;
 
     @GetMapping
     public org.springframework.http.ResponseEntity<Map<String, Object>> getPaymentAnalytics() {
-        List<Purchase> purchases = purchaseRepository.findAll();
-    double totalRevenue = purchases.stream().mapToDouble(p -> p.getAmount()).sum();
-        int totalPayments = purchases.size();
+        double totalRevenue = purchaseService.getTotalRevenue();
+        int totalPayments = purchaseService.getAllPurchases().size();
         Map<String, Object> analytics = new HashMap<>();
         analytics.put("totalRevenue", totalRevenue);
         analytics.put("totalPayments", totalPayments);

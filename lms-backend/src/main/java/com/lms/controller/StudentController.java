@@ -33,14 +33,10 @@ public class StudentController {
             return ResponseEntity.status(404).body(Map.of());
         }
 
-    List<Course> enrolled = courseService.getAllCourses().stream()
-        .filter(c -> c.getEnrolledUsers() != null && c.getEnrolledUsers().stream().anyMatch(u -> u.getId().equals(user.getId())))
-        .collect(Collectors.toList());
+    List<Course> enrolled = courseService.getCoursesByEnrolledUserId(user.getId());
 
     List<String> purchasedIds = user.getPurchasedCourses() == null ? List.of() : user.getPurchasedCourses().stream().map(Course::getId).collect(Collectors.toList());
-    List<Course> purchased = courseService.getAllCourses().stream()
-        .filter(c -> purchasedIds.contains(c.getId()))
-        .collect(Collectors.toList());
+    List<Course> purchased = courseService.getCoursesByIds(purchasedIds);
 
         return ResponseEntity.ok(Map.of("enrolled", enrolled, "purchased", purchased));
     }

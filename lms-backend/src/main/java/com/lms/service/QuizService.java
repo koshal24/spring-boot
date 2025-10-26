@@ -13,7 +13,7 @@ public class QuizService {
     private QuizRepository quizRepository;
 
     public List<Quiz> getQuizzesByCourseId(String courseId) {
-        return quizRepository.findByCourseId(courseId);
+        return quizRepository.findByCourse_Id(courseId);
     }
 
     public Optional<Quiz> getQuizById(String id) {

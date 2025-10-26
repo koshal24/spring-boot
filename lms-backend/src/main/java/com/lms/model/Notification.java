@@ -9,7 +9,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Notification {
     @Id
     private String id;
-    private String userId;
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private User user;
     private String message;
     private String type; // e.g., COURSE_UPDATE, FORUM_REPLY, CERTIFICATE_ISSUED
     private boolean read;

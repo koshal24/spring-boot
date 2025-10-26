@@ -32,10 +32,10 @@ public class CourseController {
         Course course = courseService.getCourseById(courseId).orElse(null);
         if (course == null) return ResponseEntity.notFound().build();
         if (!course.isPaid() || course.getPrice() == 0) return ResponseEntity.ok(true);
-        boolean hasPurchase = purchaseService.getAllPurchases().stream()
-            .anyMatch(p -> userId.equals(p.getUserId()) && courseId.equals(p.getCourseId()));
-        boolean hasSubscription = subscriptionService.getAllSubscriptions().stream()
-            .anyMatch(s -> userId.equals(s.getUserId()) && s.isActive());
+        boolean hasPurchase = purchaseService.getPurchasesByUserId(userId).stream()
+            .anyMatch(p -> p.getCourse() != null && courseId.equals(p.getCourse().getId()));
+        boolean hasSubscription = subscriptionService.getSubscriptionsByUserId(userId).stream()
+            .anyMatch(s -> s.isActive());
         return ResponseEntity.ok(hasPurchase || hasSubscription);
     }
 
@@ -45,6 +45,32 @@ public class CourseController {
             .filter(c -> !c.isPaid() || c.getPrice() == 0).collect(toList());
 //            .collection(toList());
         return ResponseEntity.ok(freeCourses);
+    }
+
+    @GetMapping("/top-free")
+    public ResponseEntity<List<Course>> getTopFreeCourses(@RequestParam(required = false, defaultValue = "5") int limit,
+                                                          @RequestParam(required = false, defaultValue = "popularity") String metric) {
+        // metric currently supports: "popularity" (default) - sorts by enrolledUsers size
+        List<Course> topFree;
+        if ("popularity".equalsIgnoreCase(metric)) {
+            topFree = courseService.getTopFreeCoursesByPopularity(limit);
+        } else {
+            // fallback to simple price-based fetch (no ordering)
+            topFree = courseService.getTopFreeCourses(limit);
+        }
+        return ResponseEntity.ok(topFree);
+    }
+
+    @GetMapping("/top-new-paid")
+    public ResponseEntity<List<Course>> getTopNewPaidCourses(@RequestParam(required = false, defaultValue = "5") int limit) {
+        List<Course> topNewPaid = courseService.getTopNewPaidCourses(limit);
+        return ResponseEntity.ok(topNewPaid);
+    }
+
+    @GetMapping("/top-paid-popular")
+    public ResponseEntity<List<Course>> getTopPaidPopular(@RequestParam(required = false, defaultValue = "5") int limit) {
+        List<Course> topPaid = courseService.getTopPaidCoursesByEnrollment(limit);
+        return ResponseEntity.ok(topPaid);
     }
 
     @GetMapping("/paid")

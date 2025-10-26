@@ -5,6 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface QuizAttemptRepository extends MongoRepository<QuizAttempt, String> {
-    List<QuizAttempt> findByQuizId(String quizId);
-    List<QuizAttempt> findByUserId(String userId);
+    List<QuizAttempt> findByQuiz_Id(String quizId);
+    List<QuizAttempt> findByUser_Id(String userId);
 }

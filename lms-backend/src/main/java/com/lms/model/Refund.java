@@ -14,8 +14,11 @@ import java.util.Date;
 public class Refund {
     @Id
     private String id;
-    private String purchaseId;
-    private String userId;
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private Purchase purchase;
+
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private User user;
     private double amount;
     private Date refundDate;
     private String reason;

@@ -148,7 +148,7 @@ public class AuthController {
     @PostMapping("/verify")
     public ResponseEntity<Map<String, Object>> verifyEmail(@Valid @RequestBody VerifyRequest request) {
         Map<String, Object> response = new HashMap<>();
-        User user = userRepository.findAll().stream().filter(u -> u.getEmail().equals(request.getEmail())).findFirst().orElse(null);
+    User user = userRepository.findByEmail(request.getEmail()).orElse(null);
         if (user == null) {
             response.put("error", "User not found");
             return ResponseEntity.status(404).body(response);

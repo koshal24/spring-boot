@@ -1,7 +1,11 @@
 package com.lms.controller;
 
+import com.lms.model.Course;
 import com.lms.model.Purchase;
+import com.lms.model.User;
+import com.lms.repository.CourseRepository;
 import com.lms.repository.PurchaseRepository;
+import com.lms.repository.UserRepository;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.util.Date;
 
 @RestController
@@ -24,6 +29,12 @@ public class StripeWebhookController {
     @Autowired
     private PurchaseRepository purchaseRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
+
     @PostMapping
     public ResponseEntity<String> handleStripeEvent(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
         try {
@@ -32,8 +43,20 @@ public class StripeWebhookController {
                 PaymentIntent paymentIntent = (PaymentIntent) event.getDataObjectDeserializer().getObject().orElse(null);
                 if (paymentIntent != null) {
                     Purchase purchase = new Purchase();
-                    purchase.setUserId(paymentIntent.getMetadata().get("userId"));
-                    purchase.setCourseId(paymentIntent.getMetadata().get("courseId"));
+                    String userId = paymentIntent.getMetadata().get("userId");
+                    String courseId = paymentIntent.getMetadata().get("courseId");
+
+                    User user = null;
+                    Course course = null;
+                    if (userId != null) {
+                        user = userRepository.findById(userId).orElse(null);
+                    }
+                    if (courseId != null) {
+                        course = courseRepository.findById(courseId).orElse(null);
+                    }
+
+                    purchase.setUser(user);
+                    purchase.setCourse(course);
                     purchase.setAmount(paymentIntent.getAmount() / 100.0);
                     purchase.setPurchaseDate(new Date());
                     purchaseRepository.save(purchase);

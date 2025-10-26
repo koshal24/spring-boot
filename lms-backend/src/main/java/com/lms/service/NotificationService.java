@@ -13,7 +13,7 @@ public class NotificationService {
     private NotificationRepository notificationRepository;
 
     public List<Notification> getNotificationsByUserId(String userId) {
-        return notificationRepository.findByUserId(userId);
+        return notificationRepository.findByUser_Id(userId);
     }
 
     public Optional<Notification> getNotificationById(String id) {

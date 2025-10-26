@@ -13,7 +13,7 @@ public class ForumPostService {
     private ForumPostRepository forumPostRepository;
 
     public List<ForumPost> getPostsByCourseId(String courseId) {
-        return forumPostRepository.findByCourseId(courseId);
+        return forumPostRepository.findByCourse_Id(courseId);
     }
 
     public Optional<ForumPost> getPostById(String id) {

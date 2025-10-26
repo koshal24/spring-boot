@@ -7,6 +7,9 @@ import com.lms.service.PurchaseService;
 import com.lms.service.CourseProgressService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import java.nio.charset.StandardCharsets;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -39,13 +42,33 @@ public class AdminController {
 
     @GetMapping("/report")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Map<String, Object>> getReport() {
-        Map<String, Object> report = new HashMap<>();
-        report.put("users", userService.getAllUsers().size());
-        report.put("courses", courseService.getAllCourses().size());
-        report.put("purchases", purchaseService.getAllPurchases().size());
-        report.put("courseProgress", courseProgressService.getAllCourseProgress().size());
-        return ResponseEntity.ok(report);
+    public ResponseEntity<?> getReport(@RequestParam(name = "download", required = false, defaultValue = "false") boolean download) {
+        int users = userService.getAllUsers().size();
+        int courses = courseService.getAllCourses().size();
+        int purchases = purchaseService.getAllPurchases().size();
+        int courseProgress = courseProgressService.getAllCourseProgress().size();
+        if (!download) {
+            Map<String, Object> report = new HashMap<>();
+            report.put("users", users);
+            report.put("courses", courses);
+            report.put("purchases", purchases);
+            report.put("courseProgress", courseProgress);
+            return ResponseEntity.ok(report);
+        }
+
+        // Build CSV
+        StringBuilder csv = new StringBuilder();
+        csv.append("Metric,Value\n");
+        csv.append("Users,").append(users).append("\n");
+        csv.append("Courses,").append(courses).append("\n");
+        csv.append("Purchases,").append(purchases).append("\n");
+        csv.append("CourseProgress,").append(courseProgress).append("\n");
+
+        byte[] bytes = csv.toString().getBytes(StandardCharsets.UTF_8);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=report.csv");
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return ResponseEntity.ok().headers(headers).contentLength(bytes.length).body(bytes);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")

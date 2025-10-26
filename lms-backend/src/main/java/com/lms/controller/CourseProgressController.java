@@ -63,8 +63,8 @@ public class CourseProgressController {
 
     @GetMapping("/analytics/course/{courseId}")
     public ResponseEntity<Double> getAverageCompletionRate(@PathVariable String courseId) {
-        var progresses = courseProgressService.getAllCourseProgress().stream()
-            .filter(cp -> courseId.equals(cp.getCourseId()) && cp.getTotalLessons() > 0)
+        var progresses = courseProgressService.getProgressByCourseId(courseId).stream()
+            .filter(cp -> cp.getTotalLessons() > 0)
             .collect(toList());
         double avg = progresses.isEmpty() ? 0.0 : progresses.stream()
             .mapToDouble(cp -> (cp.getCompletedLessons() * 100.0) / cp.getTotalLessons())

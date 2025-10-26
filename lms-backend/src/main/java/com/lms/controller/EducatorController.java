@@ -43,18 +43,14 @@ public class EducatorController {
     @GetMapping("/courses")
     @PreAuthorize("hasAuthority('EDUCATOR')")
     public ResponseEntity<List<Course>> getMyCourses(@RequestParam String educatorId) {
-    List<Course> courses = courseService.getAllCourses().stream()
-        .filter(c -> c.getEducator() != null && educatorId.equals(c.getEducator().getId()))
-        .collect(Collectors.toList());
+    List<Course> courses = courseService.getCoursesByEducatorId(educatorId);
         return ResponseEntity.ok(courses);
     }
 
     @GetMapping("/courses/enrollments")
     @PreAuthorize("hasAuthority('EDUCATOR')")
     public ResponseEntity<List<Object>> getCourseEnrollments(@RequestParam String educatorId) {
-        List<Course> courses = courseService.getAllCourses().stream()
-                .filter(c -> c.getEducator() != null && educatorId.equals(c.getEducator().getId()))
-                .collect(Collectors.toList());
+        List<Course> courses = courseService.getCoursesByEducatorId(educatorId);
         List<Object> enrollments = courses.stream().map(c -> {
             return new Object() {
                 public String courseId = c.getId();

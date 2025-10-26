@@ -15,16 +15,15 @@ public class RecommendationService {
     private UserRepository userRepository;
     @Autowired
     private CourseRepository courseRepository;
+    @Autowired
+    private CourseService courseService;
 
     // Recommend courses based on user's interests and progress
     public List<Course> recommendCourses(String userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) return List.of();
-    List<String> purchased = user.getPurchasedCourses() == null ? List.of() : user.getPurchasedCourses().stream().map(Course::getId).collect(Collectors.toList());
-    // Recommend courses not yet purchased by user
-    return courseRepository.findAll().stream()
-        .filter(course -> !purchased.contains(course.getId()))
-        .limit(5)
-        .collect(Collectors.toList());
+        List<String> purchased = user.getPurchasedCourses() == null ? List.of() : user.getPurchasedCourses().stream().map(Course::getId).collect(Collectors.toList());
+        // Use repository-backed query to fetch top N courses excluding purchased ones
+        return courseService.getRecommendedCoursesExcluding(purchased, 5);
     }
 }

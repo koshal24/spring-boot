@@ -29,8 +29,21 @@ public class ReceiptController {
         StringBuilder receipt = new StringBuilder();
         receipt.append("Receipt\n");
         receipt.append("Purchase ID: ").append(purchase.getId()).append("\n");
-        receipt.append("User ID: ").append(purchase.getUserId()).append("\n");
-        receipt.append("Course ID: ").append(purchase.getCourseId()).append("\n");
+        receipt.append("User ID: ");
+        if (purchase.getUser() != null) {
+            receipt.append(purchase.getUser().getId());
+        } else {
+            receipt.append("(unknown)");
+        }
+        receipt.append("\n");
+
+        receipt.append("Course ID: ");
+        if (purchase.getCourse() != null) {
+            receipt.append(purchase.getCourse().getId());
+        } else {
+            receipt.append("(unknown)");
+        }
+        receipt.append("\n");
         receipt.append("Amount: $").append(purchase.getAmount()).append("\n");
         receipt.append("Date: ").append(purchase.getPurchaseDate()).append("\n");
         byte[] receiptBytes = receipt.toString().getBytes(StandardCharsets.UTF_8);

@@ -9,8 +9,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class CourseReview {
     @Id
     private String id;
-    private String courseId;
-    private String userId;
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private Course course;
+
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private User user;
     private int rating; // 1-5
     private String comment;
     private long timestamp;

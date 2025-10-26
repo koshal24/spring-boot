@@ -13,11 +13,11 @@ public class QuizAttemptService {
     private QuizAttemptRepository quizAttemptRepository;
 
     public List<QuizAttempt> getAttemptsByQuizId(String quizId) {
-        return quizAttemptRepository.findByQuizId(quizId);
+        return quizAttemptRepository.findByQuiz_Id(quizId);
     }
 
     public List<QuizAttempt> getAttemptsByUserId(String userId) {
-        return quizAttemptRepository.findByUserId(userId);
+        return quizAttemptRepository.findByUser_Id(userId);
     }
 
     public Optional<QuizAttempt> getAttemptById(String id) {

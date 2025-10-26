@@ -10,7 +10,8 @@ import java.util.List;
 public class Quiz {
     @Id
     private String id;
-    private String courseId;
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private Course course;
     private String title;
     private List<Question> questions;
     private boolean published;

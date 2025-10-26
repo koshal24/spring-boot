@@ -15,8 +15,11 @@ import java.util.List;
 public class ForumPost {
     @Id
     private String id;
-    private String courseId;
-    private String userId;
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private Course course;
+
+    @org.springframework.data.mongodb.core.mapping.DBRef
+    private User user;
     private String content;
     private Date timestamp;
     private List<Reply> replies;
@@ -26,7 +29,8 @@ public class ForumPost {
     @AllArgsConstructor
     public static class Reply {
         private String id;
-        private String userId;
+        @org.springframework.data.mongodb.core.mapping.DBRef
+        private User user;
         private String content;
         private Date timestamp;
     }

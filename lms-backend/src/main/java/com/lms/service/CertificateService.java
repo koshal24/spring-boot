@@ -13,11 +13,11 @@ public class CertificateService {
     private CertificateRepository certificateRepository;
 
     public List<Certificate> getCertificatesByUserId(String userId) {
-        return certificateRepository.findByUserId(userId);
+        return certificateRepository.findByUser_Id(userId);
     }
 
     public List<Certificate> getCertificatesByCourseId(String courseId) {
-        return certificateRepository.findByCourseId(courseId);
+        return certificateRepository.findByCourse_Id(courseId);
     }
 
     public Optional<Certificate> getCertificateById(String id) {

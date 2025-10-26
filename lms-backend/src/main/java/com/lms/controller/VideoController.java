@@ -52,10 +52,10 @@ public class VideoController {
             response.put("videoUrl", videoUrl);
             return ResponseEntity.ok(response);
         }
-        boolean hasPurchase = purchaseService.getAllPurchases().stream()
-            .anyMatch(p -> userId.equals(p.getUserId()) && courseId.equals(p.getCourseId()));
-        boolean hasSubscription = subscriptionService.getAllSubscriptions().stream()
-            .anyMatch(s -> userId.equals(s.getUserId()) && s.isActive());
+        boolean hasPurchase = purchaseService.getPurchasesByUserId(userId).stream()
+            .anyMatch(p -> p.getCourse() != null && courseId.equals(p.getCourse().getId()));
+        boolean hasSubscription = subscriptionService.getSubscriptionsByUserId(userId).stream()
+            .anyMatch(s -> s.isActive());
         boolean canAccess = hasPurchase || hasSubscription;
         if (!canAccess) {
             response.put("error", "Access denied: Please purchase or subscribe to this course.");

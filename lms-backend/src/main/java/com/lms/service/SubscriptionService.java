@@ -16,6 +16,14 @@ public class SubscriptionService {
         return subscriptionRepository.findAll();
     }
 
+    public List<Subscription> getSubscriptionsByUserId(String userId) {
+        return subscriptionRepository.findByUser_Id(userId);
+    }
+
+    public List<Subscription> getActiveSubscriptions() {
+        return subscriptionRepository.findByActiveTrue();
+    }
+
     public Optional<Subscription> getSubscriptionById(String id) {
         return subscriptionRepository.findById(id);
     }

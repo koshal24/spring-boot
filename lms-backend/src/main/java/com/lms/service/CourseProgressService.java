@@ -16,6 +16,10 @@ public class CourseProgressService {
         return courseProgressRepository.findAll();
     }
 
+    public List<CourseProgress> getProgressByCourseId(String courseId) {
+        return courseProgressRepository.findByCourse_Id(courseId);
+    }
+
     public Optional<CourseProgress> getCourseProgressById(String id) {
         return courseProgressRepository.findById(id);
     }

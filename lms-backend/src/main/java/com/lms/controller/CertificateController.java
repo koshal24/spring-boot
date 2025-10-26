@@ -48,13 +48,15 @@ public class CertificateController {
 
     @PostMapping
     public ResponseEntity<Certificate> issueCertificate(@RequestBody CertificateRequest req) {
-        // Use userId and courseId strings (no DBRef)
-        if (!userRepository.existsById(req.getUserId()) || !courseRepository.existsById(req.getCourseId())) {
+        // Resolve user and course IDs to DBRef objects
+        var userOpt = userRepository.findById(req.getUserId());
+        var courseOpt = courseRepository.findById(req.getCourseId());
+        if (userOpt.isEmpty() || courseOpt.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         Certificate cert = new Certificate();
-        cert.setUserId(req.getUserId());
-        cert.setCourseId(req.getCourseId());
+        cert.setUser(userOpt.get());
+        cert.setCourse(courseOpt.get());
         cert.setCertificateUrl(req.getCertificateUrl());
         cert.setIssuedAt(System.currentTimeMillis());
         Certificate saved = certificateService.saveCertificate(cert);
@@ -70,13 +72,13 @@ public class CertificateController {
     private CertificateDTO toDto(Certificate c) {
         CertificateDTO dto = new CertificateDTO();
         dto.setId(c.getId());
-        if (c.getUserId() != null) {
-            dto.setUserId(c.getUserId());
-            userRepository.findById(c.getUserId()).ifPresent(u -> dto.setUserName(u.getName()));
+        if (c.getUser() != null) {
+            dto.setUserId(c.getUser().getId());
+            dto.setUserName(c.getUser().getName());
         }
-        if (c.getCourseId() != null) {
-            dto.setCourseId(c.getCourseId());
-            courseRepository.findById(c.getCourseId()).ifPresent(cr -> dto.setCourseTitle(cr.getTitle()));
+        if (c.getCourse() != null) {
+            dto.setCourseId(c.getCourse().getId());
+            dto.setCourseTitle(c.getCourse().getTitle());
         }
         dto.setCertificateUrl(c.getCertificateUrl());
         dto.setIssuedAt(c.getIssuedAt());
